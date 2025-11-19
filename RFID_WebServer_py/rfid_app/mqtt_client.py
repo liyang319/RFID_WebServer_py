@@ -6,6 +6,7 @@ import threading
 from django.conf import settings
 from django.utils import timezone
 from .models import RFIDTagData, RFIDDevice
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +74,11 @@ class SimpleMQTTClient:
 
     def process_message(self, topic: str, data: dict):
         """处理MQTT消息"""
-        # print(f'{topic} + msg={data}')
         try:
-            if 'rfid/data' in topic:
+            # 检查是否是批量标签数据格式
+            if data.get('command') == 'report_tags':
+                self.handle_batch_tags(topic, data)
+            elif 'rfid/data' in topic:
                 self.handle_rfid_data(topic, data)
             elif 'rfid/status' in topic:
                 self.handle_device_status(topic, data)
@@ -85,6 +88,53 @@ class SimpleMQTTClient:
         except Exception as e:
             logger.error(f"❌ 处理消息错误: {e}")
 
+    def handle_batch_tags(self, topic: str, data: dict):
+        """处理批量标签数据"""
+        try:
+            # 提取设备ID
+            device_id = self.extract_device_id(topic) or data.get('reader_id', 'unknown')
+            data_type = data.get('data_type', 'unknown')
+            tags = data.get('data', {}).get('tags', [])
+
+            logger.info(f"📦 收到批量标签数据: {len(tags)}个标签 - 类型: {data_type} - 设备: {device_id}")
+
+            # 处理每个标签
+            processed_count = 0
+            for tag_data in tags:
+                if self.process_single_tag(device_id, tag_data, data_type):
+                    processed_count += 1
+
+            # 更新设备状态
+            self.update_device_status(device_id, 'online', data)
+
+            logger.info(f"✅ 批量处理完成: {processed_count}/{len(tags)}个标签")
+
+        except Exception as e:
+            logger.error(f"❌ 处理批量标签数据错误: {e}")
+
+    def process_single_tag(self, device_id: str, tag_data: dict, data_type: str):
+        """处理单个标签数据"""
+        try:
+            # 转换时间格式
+            timestamp_str = tag_data.get('timestamp')
+            if timestamp_str:
+                try:
+                    from datetime import datetime
+                    timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+                    timestamp = timezone.make_aware(timestamp)
+                except ValueError:
+                    timestamp = timezone.now()
+            else:
+                timestamp = timezone.now()
+
+            # 保存到数据库
+            self.save_rfid_data(device_id, tag_data, timestamp, data_type)
+            return True
+
+        except Exception as e:
+            logger.error(f"❌ 处理单个标签错误: {e}")
+            return False
+
     def handle_rfid_data(self, topic: str, data: dict):
         """处理RFID数据"""
         try:
@@ -92,7 +142,7 @@ class SimpleMQTTClient:
             device_id = self.extract_device_id(topic) or data.get('reader_id', 'unknown')
 
             # 保存到数据库
-            self.save_rfid_data(device_id, data)
+            self.save_rfid_data(device_id, data, timezone.now(), 'single')
 
             # 更新设备状态
             self.update_device_status(device_id, 'online', data)
@@ -114,7 +164,7 @@ class SimpleMQTTClient:
         except Exception as e:
             logger.error(f"❌ 处理设备状态错误: {e}")
 
-    def save_rfid_data(self, device_id: str, data: dict):
+    def save_rfid_data(self, device_id: str, data: dict, timestamp, data_type='single'):
         """保存RFID数据到数据库"""
         try:
             # 获取或创建设备
@@ -135,11 +185,14 @@ class SimpleMQTTClient:
 
             # 保存标签数据
             tag_data = RFIDTagData(
-                tag_id=data.get('tag_id', 'unknown'),
+                tag_id=data.get('epc', 'unknown'),
                 epc=data.get('epc', ''),
                 device=device,
                 rssi=data.get('rssi'),
                 antenna=data.get('antenna', 1),
+                timestamp=timestamp,
+                product_name=data.get('product_name', ''),
+                data_type=data_type,
                 raw_data=data
             )
             tag_data.save()
@@ -172,12 +225,14 @@ class SimpleMQTTClient:
 
     def store_message(self, topic: str, data: dict):
         """存储消息用于页面显示"""
+        message_type = 'batch_tags' if data.get('command') == 'report_tags' else 'rfid_data'
+
         message = {
             'id': self.message_count,
             'topic': topic,
             'data': data,
             'timestamp': timezone.now().isoformat(),
-            'type': 'rfid_data' if 'rfid/data' in topic else 'device_status'
+            'type': message_type
         }
 
         self.recent_messages.append(message)

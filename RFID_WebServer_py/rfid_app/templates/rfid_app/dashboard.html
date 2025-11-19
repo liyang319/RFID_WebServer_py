@@ -20,6 +20,11 @@
         .rssi-positive { color: #28a745; }
         .rssi-negative { color: #dc3545; }
         .message-log { max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+        .product-name { font-weight: 600; color: #007bff; }
+        .batch-indicator { background: #e3f2fd; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
+        .api-status { font-size: 12px; padding: 2px 6px; border-radius: 3px; }
+        .api-success { background: #d4edda; color: #155724; }
+        .api-error { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
@@ -63,6 +68,31 @@
                                 <span>MQTT消息:</span>
                                 <span id="total-messages">{{ message_count }}</span>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产品统计 -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-tags"></i> 产品统计
+                    </div>
+                    <div class="card-body">
+                        <div id="product-stats">
+                            {% if product_stats %}
+                                {% for stat in product_stats %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="product-name">{{ stat.product_name|default:"未知产品" }}</span>
+                                    <span class="badge bg-primary">{{ stat.count }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-muted">暂无产品数据</div>
+                                <div class="text-warning small mt-2">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    请运行数据库迁移
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -114,6 +144,36 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- API状态 -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="bi bi-wifi"></i> API状态
+                    </div>
+                    <div class="card-body">
+                        <div id="api-status">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>统计API:</span>
+                                <span id="stats-api-status" class="api-status api-success">等待检查</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>数据API:</span>
+                                <span id="data-api-status" class="api-status api-success">等待检查</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>消息API:</span>
+                                <span id="messages-api-status" class="api-status api-success">等待检查</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>产品API:</span>
+                                <span id="product-api-status" class="api-status api-success">等待检查</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-3" onclick="checkAPIs()">
+                            <i class="bi bi-arrow-clockwise"></i> 检查API状态
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- 实时数据 -->
@@ -134,9 +194,11 @@
                                     <tr>
                                         <th>时间</th>
                                         <th>标签ID</th>
-                                        <th>阅读器</th>
+                                        <th>产品名称</th>
+                                        <th>设备</th>
                                         <th>信号强度</th>
                                         <th>天线</th>
+                                        <th>类型</th>
                                     </tr>
                                 </thead>
                                 <tbody id="real-time-table">
@@ -144,9 +206,17 @@
                                     <tr>
                                         <td>{{ tag.timestamp|date:"H:i:s" }}</td>
                                         <td class="tag-id">{{ tag.tag_id }}</td>
+                                        <td class="product-name">{{ tag.product_name|default:"未知产品" }}</td>
                                         <td>{{ tag.device.device_id }}</td>
                                         <td class="rssi-negative">{{ tag.rssi }} dBm</td>
                                         <td>{{ tag.antenna }}</td>
+                                        <td>
+                                            {% if tag.data_type == 'batch' %}
+                                            <span class="batch-indicator">批量</span>
+                                            {% else %}
+                                            <span>单条</span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -183,6 +253,9 @@
                 this.startAutoRefresh();
                 this.refreshData();
                 this.addMessageLog('仪表板初始化完成', 'success');
+
+                // 延迟检查API状态
+                setTimeout(() => this.checkAPIs(), 2000);
             }
 
             startAutoRefresh() {
@@ -212,32 +285,110 @@
                 try {
                     // 获取统计信息
                     const statsResponse = await fetch('/api/statistics/');
-                    const statsData = await statsResponse.json();
-                    this.updateStatistics(statsData.data);
+                    if (!statsResponse.ok) {
+                        throw new Error(`统计API错误: ${statsResponse.status}`);
+                    }
+
+                    const statsText = await statsResponse.text();
+                    let statsData;
+                    try {
+                        statsData = JSON.parse(statsText);
+                    } catch (e) {
+                        throw new Error(`统计API返回的不是JSON: ${statsText.substring(0, 100)}`);
+                    }
+
+                    if (statsData.success) {
+                        this.updateStatistics(statsData.data);
+                        this.updateApiStatus('stats-api-status', 'success');
+                    } else {
+                        throw new Error(statsData.error || '获取统计信息失败');
+                    }
 
                     // 获取最近数据
-                    const dataResponse = await fetch('/api/recent-data/?limit=50');
-                    const data = await dataResponse.json();
-                    this.updateRecentData(data.data);
+                    const dataResponse = await fetch('/api/recent-data/?limit=30');
+                    if (!dataResponse.ok) {
+                        throw new Error(`数据API错误: ${dataResponse.status}`);
+                    }
 
-                    // 获取最近消息
-                    const messagesResponse = await fetch('/api/recent-messages/?limit=20&type=rfid_data');
-                    const messages = await messagesResponse.json();
-                    this.updateMessageLog(messages.messages);
+                    const dataText = await dataResponse.text();
+                    let data;
+                    try {
+                        data = JSON.parse(dataText);
+                    } catch (e) {
+                        throw new Error(`数据API返回的不是JSON: ${dataText.substring(0, 100)}`);
+                    }
+
+                    if (data.success) {
+                        this.updateRecentData(data.data);
+                        this.updateApiStatus('data-api-status', 'success');
+                    } else {
+                        throw new Error(data.error || '获取最近数据失败');
+                    }
+
+                    // 获取产品统计（可选，不阻塞主流程）
+                    this.refreshProductStats();
+
+                    // 获取最近消息（可选，不阻塞主流程）
+                    this.refreshRecentMessages();
 
                     this.addMessageLog('数据刷新成功', 'success');
 
                 } catch (error) {
                     console.error('❌ 刷新数据失败:', error);
-                    this.addMessageLog('刷新数据失败: ' + error, 'error');
+                    this.addMessageLog('刷新数据失败: ' + error.message, 'error');
+                }
+            }
+
+            async refreshProductStats() {
+                try {
+                    const response = await fetch('/api/product-stats/');
+                    if (!response.ok) return; // 不抛出错误，只是跳过
+
+                    const text = await response.text();
+                    const data = JSON.parse(text);
+
+                    if (data.success) {
+                        this.updateProductStats(data.product_stats);
+                        this.updateApiStatus('product-api-status', 'success');
+                    }
+                } catch (error) {
+                    // 静默处理错误，不阻塞主流程
+                    console.log('产品统计API不可用:', error.message);
+                }
+            }
+
+            async refreshRecentMessages() {
+                try {
+                    const response = await fetch('/api/recent-messages/?limit=20');
+                    if (!response.ok) return;
+
+                    const text = await response.text();
+                    const data = JSON.parse(text);
+
+                    if (data.success) {
+                        this.updateMessageLog(data.messages);
+                        this.updateApiStatus('messages-api-status', 'success');
+                    }
+                } catch (error) {
+                    console.log('消息API不可用:', error.message);
                 }
             }
 
             updateStatistics(data) {
-                document.getElementById('total-tags').textContent = data.total_tags || 0;
-                document.getElementById('online-devices').textContent = data.online_devices || 0;
-                document.getElementById('total-devices').textContent = data.total_devices || 0;
-                document.getElementById('total-messages').textContent = data.total_messages || 0;
+                if (!data) return;
+
+                if (data.total_tags !== undefined) {
+                    document.getElementById('total-tags').textContent = data.total_tags;
+                }
+                if (data.online_devices !== undefined) {
+                    document.getElementById('online-devices').textContent = data.online_devices;
+                }
+                if (data.total_devices !== undefined) {
+                    document.getElementById('total-devices').textContent = data.total_devices;
+                }
+                if (data.total_messages !== undefined) {
+                    document.getElementById('total-messages').textContent = data.total_messages;
+                }
 
                 // 更新MQTT状态
                 const mqttStatus = document.getElementById('mqtt-status');
@@ -251,45 +402,154 @@
             }
 
             updateRecentData(data) {
+                if (!data || !Array.isArray(data)) {
+                    this.addMessageLog('无数据返回', 'warning');
+                    return;
+                }
+
                 const table = document.getElementById('real-time-table');
                 table.innerHTML = '';
+
+                if (data.length === 0) {
+                    const row = table.insertRow();
+                    row.innerHTML = '<td colspan="7" class="text-center text-muted">暂无数据</td>';
+                    return;
+                }
 
                 data.forEach(item => {
                     const row = table.insertRow();
                     const time = new Date(item.timestamp).toLocaleTimeString();
 
+                    // 安全地获取数据
+                    const tagId = item.tag_id || '未知';
+                    const productName = item.product_name || '未知产品';
+                    const deviceId = item.device_id || '未知设备';
+                    const rssi = item.rssi !== undefined ? item.rssi : 0;
+                    const antenna = item.antenna || 1;
+                    const dataType = item.data_type || 'single';
+
                     row.innerHTML = `
                         <td>${time}</td>
-                        <td class="tag-id">${item.tag_id}</td>
-                        <td>${item.reader_id}</td>
-                        <td class="${item.rssi >= -40 ? 'rssi-positive' : 'rssi-negative'}">
-                            ${item.rssi} dBm
+                        <td class="tag-id">${tagId}</td>
+                        <td class="product-name">${productName}</td>
+                        <td>${deviceId}</td>
+                        <td class="${rssi >= -40 ? 'rssi-positive' : 'rssi-negative'}">
+                            ${rssi} dBm
                         </td>
-                        <td>${item.antenna}</td>
+                        <td>${antenna}</td>
+                        <td>${dataType === 'batch' ? '<span class="batch-indicator">批量</span>' : '单条'}</td>
                     `;
+                });
+            }
+
+            updateProductStats(productStats) {
+                const container = document.getElementById('product-stats');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                if (!productStats || !Array.isArray(productStats) || productStats.length === 0) {
+                    container.innerHTML = '<div class="text-muted">暂无产品数据</div>';
+                    return;
+                }
+
+                productStats.forEach(stat => {
+                    const statElement = document.createElement('div');
+                    statElement.className = 'd-flex justify-content-between mb-2';
+                    statElement.innerHTML = `
+                        <span class="product-name">${stat.product_name || '未知产品'}</span>
+                        <span class="badge bg-primary">${stat.count || 0}</span>
+                    `;
+                    container.appendChild(statElement);
                 });
             }
 
             updateMessageLog(messages) {
                 const logContainer = document.getElementById('message-log');
+                if (!logContainer) return;
+
                 logContainer.innerHTML = '';
+
+                if (!messages || !Array.isArray(messages) || messages.length === 0) {
+                    logContainer.innerHTML = '<div class="text-muted">暂无消息</div>';
+                    return;
+                }
 
                 messages.slice().reverse().forEach(msg => {
                     const time = new Date(msg.timestamp).toLocaleTimeString();
                     const logEntry = document.createElement('div');
 
+                    let messageContent = '';
+                    if (msg.type === 'batch_tags') {
+                        messageContent = `批量标签: ${msg.data.tag_count}个标签`;
+                    } else if (msg.type === 'rfid_data') {
+                        const tagId = msg.data.tag_id || msg.data.epc || '未知标签';
+                        messageContent = `标签: ${tagId}`;
+                    } else {
+                        messageContent = JSON.stringify(msg.data).substring(0, 100);
+                    }
+
                     logEntry.innerHTML = `
                         <span class="text-muted">[${time}]</span>
                         <span class="text-success">${msg.topic}</span> -
-                        <span>${msg.data.tag_id || '状态更新'}</span>
+                        <span>${messageContent}</span>
                     `;
 
                     logContainer.appendChild(logEntry);
                 });
+
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            updateApiStatus(apiId, status) {
+                const element = document.getElementById(apiId);
+                if (element) {
+                    element.textContent = status === 'success' ? '正常' : '错误';
+                    element.className = `api-status ${status === 'success' ? 'api-success' : 'api-error'}`;
+                }
+            }
+
+            async checkAPIs() {
+                this.addMessageLog('开始检查API状态...', 'info');
+
+                const apis = [
+                    { id: 'stats-api-status', url: '/api/statistics/', name: '统计信息API' },
+                    { id: 'data-api-status', url: '/api/recent-data/?limit=5', name: '最近数据API' },
+                    { id: 'messages-api-status', url: '/api/recent-messages/?limit=5', name: '消息API' },
+                    { id: 'product-api-status', url: '/api/product-stats/', name: '产品统计API' }
+                ];
+
+                for (const api of apis) {
+                    try {
+                        const response = await fetch(api.url);
+                        const text = await response.text();
+
+                        if (response.ok) {
+                            try {
+                                JSON.parse(text);
+                                this.updateApiStatus(api.id, 'success');
+                                this.addMessageLog(`✅ ${api.name} 正常`, 'success');
+                            } catch (e) {
+                                this.updateApiStatus(api.id, 'error');
+                                this.addMessageLog(`❌ ${api.name} 返回的不是JSON`, 'error');
+                            }
+                        } else {
+                            this.updateApiStatus(api.id, 'error');
+                            this.addMessageLog(`❌ ${api.name} 返回错误: ${response.status}`, 'error');
+                        }
+                    } catch (error) {
+                        this.updateApiStatus(api.id, 'error');
+                        this.addMessageLog(`❌ ${api.name} 请求失败: ${error.message}`, 'error');
+                    }
+                }
+
+                this.addMessageLog('API状态检查完成', 'info');
             }
 
             addMessageLog(message, type = 'info') {
                 const logContainer = document.getElementById('message-log');
+                if (!logContainer) return;
+
                 const now = new Date().toLocaleTimeString();
 
                 const logEntry = document.createElement('div');
@@ -301,9 +561,9 @@
                 `;
 
                 logContainer.appendChild(logEntry);
+
                 logContainer.scrollTop = logContainer.scrollHeight;
 
-                // 限制日志数量
                 if (logContainer.children.length > 50) {
                     logContainer.removeChild(logContainer.firstChild);
                 }
@@ -325,6 +585,10 @@
                         })
                     });
 
+                    if (!response.ok) {
+                        throw new Error(`命令API错误: ${response.status}`);
+                    }
+
                     const result = await response.json();
 
                     if (result.success) {
@@ -335,13 +599,17 @@
 
                 } catch (error) {
                     console.error('❌ 发送命令失败:', error);
-                    this.addMessageLog('发送命令失败: ' + error, 'error');
+                    this.addMessageLog('发送命令失败: ' + error.message, 'error');
                 }
             }
 
             clearData() {
-                document.getElementById('real-time-table').innerHTML = '';
-                document.getElementById('message-log').innerHTML = '';
+                const table = document.getElementById('real-time-table');
+                const logContainer = document.getElementById('message-log');
+
+                if (table) table.innerHTML = '';
+                if (logContainer) logContainer.innerHTML = '';
+
                 this.addMessageLog('显示数据已清空', 'info');
             }
         }
@@ -364,6 +632,10 @@
 
         function toggleAutoRefresh() {
             dashboard.startAutoRefresh();
+        }
+
+        function checkAPIs() {
+            dashboard.checkAPIs();
         }
 
         // 页面卸载时停止自动刷新
