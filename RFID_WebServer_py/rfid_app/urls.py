@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/product-stats/', views.get_product_stats_api, name='api_product_stats'),
     path('api/send-command/', views.send_command_api, name='api_send_command'),
     path('api/connection-status/', views.get_connection_status_api, name='api_connection_status'),
+    path('api/clear-database/', views.clear_database_api, name='api_clear_database'),
 ]

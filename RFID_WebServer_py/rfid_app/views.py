@@ -436,3 +436,44 @@ def export_data_api(request):
             'success': False,
             'error': str(e)
         })
+
+
+# rfid_app/views.py
+@csrf_exempt
+@require_http_methods(["POST"])
+def clear_database_api(request):
+    """清空数据库API"""
+    try:
+        data_type = request.GET.get('type', 'tags')  # tags, all
+
+        if data_type == 'all':
+            # 清空所有数据
+            tag_count = RFIDTagData.objects.count()
+            device_count = RFIDDevice.objects.count()
+            RFIDTagData.objects.all().delete()
+            RFIDDevice.objects.all().delete()
+            message = f'已清空所有数据：{tag_count}条标签，{device_count}台设备'
+        elif data_type == 'tags':
+            # 只清空标签数据
+            count = RFIDTagData.objects.count()
+            RFIDTagData.objects.all().delete()
+            message = f'已清空 {count} 条标签数据'
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': '无效的数据类型'
+            })
+
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'cleared_count': count if data_type == 'tags' else tag_count,
+            'data_type': data_type,
+            'timestamp': timezone.now().isoformat()
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

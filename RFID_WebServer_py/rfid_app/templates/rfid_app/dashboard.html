@@ -129,7 +129,7 @@
                             <button class="btn btn-outline-primary" onclick="refreshData()">
                                 <i class="bi bi-arrow-clockwise"></i> 刷新数据
                             </button>
-                            <button class="btn btn-outline-secondary" onclick="clearData()">
+                            <button class="btn btn-outline-secondary" onclick="clearDisplayData()">
                                 <i class="bi bi-trash"></i> 清空显示
                             </button>
                         </div>
@@ -182,7 +182,7 @@
                     <div class="card-header bg-info text-white">
                         <i class="bi bi-collection-play"></i> 实时数据流
                         <span class="float-end">
-                            <button class="btn btn-sm btn-light" onclick="clearData()">
+                            <button class="btn btn-sm btn-light" onclick="clearDisplayData()">
                                 <i class="bi bi-trash"></i> 清空
                             </button>
                         </span>
@@ -603,14 +603,116 @@
                 }
             }
 
-            clearData() {
+            // 修改的关键部分：清空显示数据方法
+            clearDisplayData() {
+                // 询问用户是否要清空数据库
+                if (confirm('确定要清空显示数据吗？\n\n是否同时清空数据库？\n\n点击"确定"清空数据库和显示\n点击"取消"仅清空显示')) {
+                    // 用户选择清空数据库
+                    this.clearDatabase('tags');
+                } else {
+                    // 用户选择仅清空显示
+                    this._clearDisplayOnly();
+                    this.addMessageLog('显示数据已清空（数据库未清空）', 'info');
+                }
+            }
+
+            // 私有方法：仅清空显示，不操作数据库
+            _clearDisplayOnly() {
                 const table = document.getElementById('real-time-table');
                 const logContainer = document.getElementById('message-log');
 
-                if (table) table.innerHTML = '';
-                if (logContainer) logContainer.innerHTML = '';
+                if (table) {
+                    table.innerHTML = '<tr><td colspan="7" class="text-center text-muted">暂无数据</td></tr>';
+                }
+                if (logContainer) {
+                    logContainer.innerHTML = '';
+                }
 
-                this.addMessageLog('显示数据已清空', 'info');
+                // 重置统计信息显示（但不从数据库重新获取）
+                document.getElementById('total-tags').textContent = '0';
+                document.getElementById('online-devices').textContent = '0';
+                document.getElementById('total-devices').textContent = '0';
+                document.getElementById('total-messages').textContent = '0';
+
+                // 清空产品统计显示
+                const productStats = document.getElementById('product-stats');
+                if (productStats) {
+                    productStats.innerHTML = '<div class="text-muted">暂无产品数据</div>';
+                }
+            }
+
+            // 清空数据库方法
+            async clearDatabase(dataType = 'tags') {
+                try {
+                    let message = '';
+                    switch(dataType) {
+                        case 'all':
+                            message = '确定要清空所有数据吗？此操作将删除所有标签和设备数据，不可撤销！';
+                            break;
+                        case 'tags':
+                            message = '确定要清空所有标签数据吗？此操作不可撤销！';
+                            break;
+                        default:
+                            message = '确定要清空数据吗？';
+                    }
+
+                    if (!confirm(message)) {
+                        this.addMessageLog('用户取消清空操作', 'warning');
+                        return;
+                    }
+
+                    this.addMessageLog(`正在清空${dataType}数据...`, 'warning');
+
+                    const response = await fetch('/api/clear-database/?type=' + dataType, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': this.getCSRFToken()
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`清空API错误: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.addMessageLog(result.message, 'success');
+
+                        // 清空显示
+                        this._clearDisplayOnly();
+
+                        // 刷新页面数据
+                        setTimeout(() => {
+                            this.refreshData();
+                        }, 1000);
+
+                    } else {
+                        throw new Error(result.error || '清空数据失败');
+                    }
+
+                } catch (error) {
+                    console.error('❌ 清空数据失败:', error);
+                    this.addMessageLog('清空数据失败: ' + error.message, 'error');
+                }
+            }
+
+            getCSRFToken() {
+                // 获取CSRF token
+                const name = 'csrftoken';
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
             }
         }
 
@@ -626,8 +728,8 @@
             dashboard.refreshData();
         }
 
-        function clearData() {
-            dashboard.clearData();
+        function clearDisplayData() {
+            dashboard.clearDisplayData();
         }
 
         function toggleAutoRefresh() {
