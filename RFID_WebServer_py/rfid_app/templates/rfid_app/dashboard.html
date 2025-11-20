@@ -210,13 +210,7 @@
                                         <td>{{ tag.device.device_id }}</td>
                                         <td class="rssi-negative">{{ tag.rssi }} dBm</td>
                                         <td>{{ tag.antenna }}</td>
-                                        <td>
-                                            {% if tag.data_type == 'batch' %}
-                                            <span class="batch-indicator">批量</span>
-                                            {% else %}
-                                            <span>单条</span>
-                                            {% endif %}
-                                        </td>
+                                        <td>{{ tag.data_type }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -437,7 +431,7 @@
                             ${rssi} dBm
                         </td>
                         <td>${antenna}</td>
-                        <td>${dataType === 'batch' ? '<span class="batch-indicator">批量</span>' : '单条'}</td>
+                        <td>${dataType}</td>
                     `;
                 });
             }

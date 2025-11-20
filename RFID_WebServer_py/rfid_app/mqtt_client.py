@@ -245,7 +245,8 @@ class SimpleMQTTClient:
         """从主题中提取设备ID"""
         parts = topic.split('/')
         if len(parts) >= 2:
-            return parts[1]
+            print(f'deviceid = {parts[2]}')
+            return parts[2]
         return 'unknown'
 
     def get_recent_messages(self, limit=50, message_type=None):
