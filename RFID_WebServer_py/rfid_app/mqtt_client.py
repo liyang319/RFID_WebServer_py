@@ -94,7 +94,7 @@ class SimpleMQTTClient:
             # 提取设备ID
             device_id = self.extract_device_id(topic) or data.get('reader_id', 'unknown')
             data_type = data.get('data_type', 'unknown')
-            tags = data.get('data', {}).get('tags', [])
+            tags = data.get('tags', [])
 
             logger.info(f"📦 收到批量标签数据: {len(tags)}个标签 - 类型: {data_type} - 设备: {device_id}")
 

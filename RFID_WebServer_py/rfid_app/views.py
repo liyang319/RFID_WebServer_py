@@ -445,7 +445,7 @@ def clear_database_api(request):
     """清空数据库API"""
     try:
         data_type = request.GET.get('type', 'tags')  # tags, all
-
+        print(f'data_type={data_type}')
         if data_type == 'all':
             # 清空所有数据
             tag_count = RFIDTagData.objects.count()
