@@ -683,15 +683,221 @@
                 <!-- 产品管理模块 -->
                 <div id="product" class="module">
                     <h2>产品管理</h2>
-                    
+
                     <div class="tabs">
-                        <div class="tab active" onclick="showTab('product-info-tab', this)">产品信息</div>
+                        <div class="tab active" onclick="showTab('line-management-tab', this)">产线管理</div>
+                        <div class="tab" onclick="showTab('product-info-tab', this)">产品信息</div>
                         <div class="tab" onclick="showTab('inventory-tab', this)">库存管理</div>
                         <div class="tab" onclick="showTab('production-tab', this)">生产管理</div>
                         <div class="tab" onclick="showTab('quality-tab', this)">质量管理</div>
                     </div>
-                    
-                    <div id="product-info-tab" class="tab-content active">
+
+                    <!-- 产线管理标签页 -->
+                    <div id="line-management-tab" class="tab-content active">
+                        <div class="card">
+                            <div class="card-header">产线终端监控</div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                                    <!-- 产线1 -->
+                                    <div class="card" style="border-left: 4px solid #1890ff;">
+                                        <div class="card-header" style="background: #f0f8ff;">
+                                            <i class="fas fa-industry" style="color: #1890ff;"></i>
+                                            <span style="margin-left: 8px; font-weight: bold;">产线1</span>
+                                            <span class="badge badge-success" style="float: right;">运行中</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">生产时间</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">8小时25分钟</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">激活标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #52c41a;">1,245个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">异常标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #f5222d;">12个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">今日产量</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #fa8c16;">356箱</div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
+                                                <div style="font-size: 12px; color: #999;">最后上报: 2024-01-15 14:28:30</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 产线2 -->
+                                    <div class="card" style="border-left: 4px solid #52c41a;">
+                                        <div class="card-header" style="background: #f6ffed;">
+                                            <i class="fas fa-industry" style="color: #52c41a;"></i>
+                                            <span style="margin-left: 8px; font-weight: bold;">产线2</span>
+                                            <span class="badge badge-success" style="float: right;">运行中</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">生产时间</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">7小时40分钟</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">激活标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #52c41a;">987个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">异常标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #f5222d;">8个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">今日产量</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #fa8c16;">284箱</div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
+                                                <div style="font-size: 12px; color: #999;">最后上报: 2024-01-15 14:25:15</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 通道机1 -->
+                                    <div class="card" style="border-left: 4px solid #fa8c16;">
+                                        <div class="card-header" style="background: #fff7e6;">
+                                            <i class="fas fa-door-open" style="color: #fa8c16;"></i>
+                                            <span style="margin-left: 8px; font-weight: bold;">通道机1</span>
+                                            <span class="badge badge-success" style="float: right;">正常</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">运行时间</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">12小时10分钟</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">出库标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #52c41a;">245个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">入库标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">156个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">读取成功率</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #fa8c16;">98.5%</div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
+                                                <div style="font-size: 12px; color: #999;">最后上报: 2024-01-15 14:30:45</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 通道机2 -->
+                                    <div class="card" style="border-left: 4px solid #722ed1;">
+                                        <div class="card-header" style="background: #f9f0ff;">
+                                            <i class="fas fa-door-open" style="color: #722ed1;"></i>
+                                            <span style="margin-left: 8px; font-weight: bold;">通道机2</span>
+                                            <span class="badge badge-warning" style="float: right;">预警</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">运行时间</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">11小时35分钟</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">出库标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #52c41a;">189个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">入库标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">201个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">读取成功率</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #f5222d;">92.3%</div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
+                                                <div style="font-size: 12px; color: #999;">最后上报: 2024-01-15 14:20:30</div>
+                                                <div style="font-size: 12px; color: #f5222d; margin-top: 5px;">异常: 读取错误率偏高</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 产线3 -->
+                                    <div class="card" style="border-left: 4px solid #f5222d;">
+                                        <div class="card-header" style="background: #fff1f0;">
+                                            <i class="fas fa-industry" style="color: #f5222d;"></i>
+                                            <span style="margin-left: 8px; font-weight: bold;">产线3</span>
+                                            <span class="badge badge-danger" style="float: right;">停机</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">生产时间</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #666;">0小时0分钟</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">激活标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #666;">0个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">异常标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #666;">0个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">今日产量</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #666;">0箱</div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
+                                                <div style="font-size: 12px; color: #999;">最后上报: 2024-01-15 08:45:20</div>
+                                                <div style="font-size: 12px; color: #f5222d; margin-top: 5px;">状态: 设备维护中</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 通道机3 -->
+                                    <div class="card" style="border-left: 4px solid #13c2c2;">
+                                        <div class="card-header" style="background: #e6fffb;">
+                                            <i class="fas fa-door-open" style="color: #13c2c2;"></i>
+                                            <span style="margin-left: 8px; font-weight: bold;">通道机3</span>
+                                            <span class="badge badge-success" style="float: right;">正常</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">运行时间</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">10小时50分钟</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">出库标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #52c41a;">167个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">入库标签</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #1890ff;">134个</div>
+                                                </div>
+                                                <div class="stat-item">
+                                                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">读取成功率</div>
+                                                    <div style="font-size: 16px; font-weight: bold; color: #fa8c16;">96.8%</div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0;">
+                                                <div style="font-size: 12px; color: #999;">最后上报: 2024-01-15 14:32:10</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 产品信息标签页（原有内容保持不变） -->
+                    <div id="product-info-tab" class="tab-content">
                         <div class="search-bar">
                             <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end;">
                                 <div>
@@ -712,7 +918,7 @@
                                 <button class="btn" style="background: #f5f5f5;">重置</button>
                             </div>
                         </div>
-                        
+
                         <div class="card">
                             <div class="card-header">
                                 <span>产品列表</span>
@@ -815,7 +1021,8 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- 其他标签页内容保持不变 -->
                     <div id="inventory-tab" class="tab-content">
                         <div class="card">
                             <div class="card-header">库存管理</div>
@@ -910,7 +1117,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="production-tab" class="tab-content">
                         <div class="card">
                             <div class="card-header">生产计划与进度</div>
@@ -1002,7 +1209,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="quality-tab" class="tab-content">
                         <div class="card">
                             <div class="card-header">质量检验记录</div>
@@ -1953,17 +2160,19 @@
         
         // 标签页切换功能
         function showTab(tabId, element) {
+            // 获取当前标签页容器
             const tabContainer = element.parentElement;
-            const tabContents = tabContainer.parentElement.querySelectorAll('.tab-content');
-            
+            const moduleContainer = tabContainer.parentElement.parentElement;
+
             // 移除所有激活状态
             tabContainer.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            tabContents.forEach(content => {
+
+            moduleContainer.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active');
             });
-            
+
             // 激活当前标签
             element.classList.add('active');
             document.getElementById(tabId).classList.add('active');
