@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>民用爆炸品生产运输管理平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1890ff;
+            --success: #52c41a;
+            --warning: #faad14;
+            --danger: #f5222d;
+            --sidebar-bg: #001529;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar-bg);
+            color: white;
+        }
+        
+        .logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #033;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .menu-item:hover, .menu-item.active {
+            background: #000c17;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: white;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        
+        .content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            background: #fafafa;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+            color: white;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: white;
+        }
+        
+        .badge-success { background: var(--success); }
+        .badge-warning { background: var(--warning); }
+        .badge-danger { background: var(--danger); }
+        .badge-info { background: var(--primary); }
+        .badge-secondary { background: #6c757d; }
+        
+        .module {
+            display: none;
+        }
+        
+        .module.active {
+            display: block;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #fafafa;
+            font-weight: 600;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        
+        .search-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding: 10px 0 10px 20px;
+            border-left: 2px solid #e8e8e8;
+        }
+        
+        .timeline-item:last-child {
+            border-left-color: transparent;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 15px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+        
+        .timeline-time {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .permission-tree {
+            margin-left: 20px;
+        }
+        
+        .permission-item {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        
+        .permission-item label {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        
+        .progress {
+            height: 10px;
+            margin: 5px 0;
+        }
+        
+        .map-container {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .sidebar {
+                width: 60px;
+            }
+            
+            .sidebar span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="logo">🔥 火工品管理平台</div>
+            <ul class="menu">
+                <li class="menu-item active" onclick="showModule('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>系统仪表板</span>
+                </li>
+                <li class="menu-item" onclick="showModule('user')">
+                    <i class="fas fa-users"></i>
+                    <span>用户管理</span>
+                </li>
+                <li class="menu-item" onclick="showModule('permission')">
+                    <i class="fas fa-user-shield"></i>
+                    <span>权限管理</span>
+                </li>
+                <li class="menu-item" onclick="showModule('rfid')">
+                    <i class="fas fa-tags"></i>
+                    <span>RFID管理</span>
+                </li>
+                <li class="menu-item" onclick="showModule('device')">
+                    <i class="fas fa-microchip"></i>
+                    <span>设备管理</span>
+                </li>
+                <li class="menu-item" onclick="showModule('product')">
+                    <i class="fas fa-box"></i>
+                    <span>产品管理</span>
+                </li>
+                <li class="menu-item" onclick="showModule('order')">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>订单管理</span>
+                </li>
+                <li class="menu-item" onclick="showModule('vehicle')">
+                    <i class="fas fa-truck"></i>
+                    <span>车辆管理</span>
+                </li>
+                <li class="menu-item" onclick="showModule('log')">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>系统日志</span>
+                </li>
+                <li class="menu-item" onclick="showModule('data-exchange')">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>数据交换</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="header">
+                <div>民用爆炸品生产运输管理平台</div>
+                <div>
+                    <span>管理员，您好！</span>
+                    <span id="current-time" style="margin-left: 20px;"></span>
+                </div>
+            </div>
+            
+            <div class="content">
+                <!-- 仪表板 -->
+                <div id="dashboard" class="module active">
+                    <h2>系统概览</h2>
+                    
+                    <div class="stats">
+                        <div class="stat-card" style="background: linear-gradient(45deg, #1890ff, #36c);">
+                            <i class="fas fa-box fa-2x"></i>
+                            <div class="stat-value">1,254</div>
+                            <div>在库产品总数</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(45deg, #52c41a, #73d13d);">
+                            <i class="fas fa-tags fa-2x"></i>
+                            <div class="stat-value">856</div>
+                            <div>活跃RFID标签</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(45deg, #fa8c16, #ffa940);">
+                            <i class="fas fa-shipping-fast fa-2x"></i>
+                            <div class="stat-value">12</div>
+                            <div>在途运输订单</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(45deg, #722ed1, #9254de);">
+                            <i class="fas fa-microchip fa-2x"></i>
+                            <div class="stat-value">45</div>
+                            <div>在线设备数</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="card">
+                            <div class="card-header">生产进度统计</div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="productionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">库存预警</div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>产品名称</th>
+                                            <th>当前库存</th>
+                                            <th>最低库存</th>
+                                            <th>状态</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>工业炸药-乳化型</td>
+                                            <td>45</td>
+                                            <td>50</td>
+                                            <td><span class="badge badge-danger">紧急</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>工业雷管-电雷管</td>
+                                            <td>68</td>
+                                            <td>60</td>
+                                            <td><span class="badge badge-warning">预警</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>导爆索</td>
+                                            <td>120</td>
+                                            <td>100</td>
+                                            <td><span class="badge badge-success">正常</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">最新操作日志</div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-time">2024-01-15 14:30:25</div>
+                                    <div>用户 张三 完成了产品入库操作，数量：50箱</div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">2024-01-15 13:20:15</div>
+                                    <div>运输订单 T20240115003 已发车</div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-time">2024-01-15 11:45:30</div>
+                                    <div>RFID设备 通道门读写器-01 上报异常读取</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 权限管理模块 -->
+                <div id="permission" class="module">
+                    <h2>权限管理</h2>
+                    
+                    <div class="tabs">
+                        <div class="tab active" onclick="showTab('roles-tab', this)">角色管理</div>
+                        <div class="tab" onclick="showTab('permissions-tab', this)">权限配置</div>
+                        <div class="tab" onclick="showTab('users-roles-tab', this)">用户角色分配</div>
+                    </div>
+                    
+                    <div id="roles-tab" class="tab-content active">
+                        <div class="card">
+                            <div class="card-header">
+                                <span>角色列表</span>
+                                <button class="btn btn-primary btn-sm" style="float: right;">新增角色</button>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>角色名称</th>
+                                            <th>角色代码</th>
+                                            <th>描述</th>
+                                            <th>用户数量</th>
+                                            <th>创建时间</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>系统管理员</td>
+                                            <td>ROLE_ADMIN</td>
+                                            <td>拥有系统所有权限，可进行系统配置和管理</td>
+                                            <td>3</td>
+                                            <td>2023-05-10</td>
+                                            <td><span class="badge badge-success">启用</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">权限</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>生产主管</td>
+                                            <td>ROLE_PRODUCTION_MANAGER</td>
+                                            <td>负责生产计划、进度管理和产品质量控制</td>
+                                            <td>8</td>
+                                            <td>2023-06-15</td>
+                                            <td><span class="badge badge-success">启用</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">权限</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>仓库管理员</td>
+                                            <td>ROLE_WAREHOUSE_KEEPER</td>
+                                            <td>负责仓库管理、出入库操作和库存盘点</td>
+                                            <td>12</td>
+                                            <td>2023-07-20</td>
+                                            <td><span class="badge badge-success">启用</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">权限</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>运输调度员</td>
+                                            <td>ROLE_TRANSPORT_DISPATCHER</td>
+                                            <td>负责运输订单管理、车辆调度和路线规划</td>
+                                            <td>6</td>
+                                            <td>2023-08-05</td>
+                                            <td><span class="badge badge-success">启用</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">权限</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>安全监察员</td>
+                                            <td>ROLE_SAFETY_INSPECTOR</td>
+                                            <td>负责安全检查和违规行为处理</td>
+                                            <td>4</td>
+                                            <td>2023-09-12</td>
+                                            <td><span class="badge badge-success">启用</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">权限</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="permissions-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">权限配置</div>
+                            <div class="card-body">
+                                <div class="permission-tree">
+                                    <div class="permission-item">
+                                        <input type="checkbox" id="sys-mgmt" checked>
+                                        <label for="sys-mgmt">系统管理</label>
+                                        <div class="permission-tree">
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="user-mgmt" checked>
+                                                <label for="user-mgmt">用户管理</label>
+                                            </div>
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="role-mgmt" checked>
+                                                <label for="role-mgmt">角色管理</label>
+                                            </div>
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="sys-config">
+                                                <label for="sys-config">系统配置</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" id="prod-mgmt" checked>
+                                        <label for="prod-mgmt">生产管理</label>
+                                        <div class="permission-tree">
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="prod-plan" checked>
+                                                <label for="prod-plan">生产计划</label>
+                                            </div>
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="prod-progress" checked>
+                                                <label for="prod-progress">生产进度</label>
+                                            </div>
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="quality-check">
+                                                <label for="quality-check">质量检验</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="permission-item">
+                                        <input type="checkbox" id="warehouse-mgmt" checked>
+                                        <label for="warehouse-mgmt">仓储管理</label>
+                                        <div class="permission-tree">
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="in-out" checked>
+                                                <label for="in-out">出入库管理</label>
+                                            </div>
+                                            <div class="permission-item">
+                                                <input type="checkbox" id="inventory-check">
+                                                <label for="inventory-check">库存盘点</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 20px; text-align: center;">
+                                    <button class="btn btn-primary">保存权限配置</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="users-roles-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">用户角色分配</div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>用户名</th>
+                                            <th>真实姓名</th>
+                                            <th>部门</th>
+                                            <th>当前角色</th>
+                                            <th>分配时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>admin</td>
+                                            <td>系统管理员</td>
+                                            <td>信息技术部</td>
+                                            <td><span class="badge badge-info">系统管理员</span></td>
+                                            <td>2023-05-10</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">重新分配</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>zhangsan</td>
+                                            <td>张三</td>
+                                            <td>生产部</td>
+                                            <td><span class="badge badge-warning">生产主管</span></td>
+                                            <td>2023-08-15</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">重新分配</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>lisi</td>
+                                            <td>李四</td>
+                                            <td>仓储部</td>
+                                            <td><span class="badge badge-info">仓库管理员</span></td>
+                                            <td>2023-09-20</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">重新分配</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>wangwu</td>
+                                            <td>王五</td>
+                                            <td>运输部</td>
+                                            <td><span class="badge badge-secondary">运输调度员</span></td>
+                                            <td>2023-10-05</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">重新分配</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 产品管理模块 -->
+                <div id="product" class="module">
+                    <h2>产品管理</h2>
+                    
+                    <div class="tabs">
+                        <div class="tab active" onclick="showTab('product-info-tab', this)">产品信息</div>
+                        <div class="tab" onclick="showTab('inventory-tab', this)">库存管理</div>
+                        <div class="tab" onclick="showTab('production-tab', this)">生产管理</div>
+                        <div class="tab" onclick="showTab('quality-tab', this)">质量管理</div>
+                    </div>
+                    
+                    <div id="product-info-tab" class="tab-content active">
+                        <div class="search-bar">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end;">
+                                <div>
+                                    <label>产品名称</label>
+                                    <input type="text" class="form-control" placeholder="输入产品名称">
+                                </div>
+                                <div>
+                                    <label>产品类型</label>
+                                    <select class="form-control">
+                                        <option>全部类型</option>
+                                        <option>工业炸药</option>
+                                        <option>工业雷管</option>
+                                        <option>导爆索</option>
+                                        <option>其他</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-primary">查询</button>
+                                <button class="btn" style="background: #f5f5f5;">重置</button>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header">
+                                <span>产品列表</span>
+                                <button class="btn btn-primary btn-sm" style="float: right;">新增产品</button>
+                            </div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>产品编号</th>
+                                            <th>产品名称</th>
+                                            <th>规格型号</th>
+                                            <th>产品类型</th>
+                                            <th>包装方式</th>
+                                            <th>净质量(kg)</th>
+                                            <th>危险等级</th>
+                                            <th>当前库存</th>
+                                            <th>最低库存</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>P001</td>
+                                            <td>工业炸药-乳化型</td>
+                                            <td>Φ32mm×200g</td>
+                                            <td>工业炸药</td>
+                                            <td>纸箱包装</td>
+                                            <td>200</td>
+                                            <td><span class="badge badge-danger">高</span></td>
+                                            <td>1250</td>
+                                            <td>500</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>P002</td>
+                                            <td>工业雷管-电雷管</td>
+                                            <td>8号电雷管</td>
+                                            <td>工业雷管</td>
+                                            <td>塑料盒包装</td>
+                                            <td>25</td>
+                                            <td><span class="badge badge-danger">高</span></td>
+                                            <td>800</td>
+                                            <td>300</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>P003</td>
+                                            <td>导爆索</td>
+                                            <td>Φ5.2mm×50m</td>
+                                            <td>导爆索</td>
+                                            <td>塑料膜包装</td>
+                                            <td>50</td>
+                                            <td><span class="badge badge-warning">中</span></td>
+                                            <td>1200</td>
+                                            <td>400</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>P004</td>
+                                            <td>工业炸药-水胶型</td>
+                                            <td>Φ35mm×250g</td>
+                                            <td>工业炸药</td>
+                                            <td>纸箱包装</td>
+                                            <td>250</td>
+                                            <td><span class="badge badge-danger">高</span></td>
+                                            <td>980</td>
+                                            <td>400</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>P005</td>
+                                            <td>工业雷管-非电雷管</td>
+                                            <td>8号非电雷管</td>
+                                            <td>工业雷管</td>
+                                            <td>塑料盒包装</td>
+                                            <td>20</td>
+                                            <td><span class="badge badge-danger">高</span></td>
+                                            <td>650</td>
+                                            <td>250</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">详情</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="inventory-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">库存管理</div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>仓库</th>
+                                            <th>库位</th>
+                                            <th>产品名称</th>
+                                            <th>数量</th>
+                                            <th>生产批号</th>
+                                            <th>生产日期</th>
+                                            <th>有效期至</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>中央仓库</td>
+                                            <td>A区-01-01</td>
+                                            <td>工业炸药-乳化型</td>
+                                            <td>500</td>
+                                            <td>B20240115001</td>
+                                            <td>2024-01-15</td>
+                                            <td>2025-01-15</td>
+                                            <td><span class="badge badge-success">正常</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">移库</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">盘点</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>南区仓库</td>
+                                            <td>B区-02-03</td>
+                                            <td>工业雷管-电雷管</td>
+                                            <td>300</td>
+                                            <td>B20240114002</td>
+                                            <td>2024-01-14</td>
+                                            <td>2025-01-14</td>
+                                            <td><span class="badge badge-success">正常</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">移库</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">盘点</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>西区仓库</td>
+                                            <td>C区-03-05</td>
+                                            <td>导爆索</td>
+                                            <td>800</td>
+                                            <td>B20240113003</td>
+                                            <td>2024-01-13</td>
+                                            <td>2025-07-13</td>
+                                            <td><span class="badge badge-warning">临期</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">移库</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">盘点</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>中央仓库</td>
+                                            <td>A区-01-02</td>
+                                            <td>工业炸药-水胶型</td>
+                                            <td>400</td>
+                                            <td>B20240112004</td>
+                                            <td>2024-01-12</td>
+                                            <td>2025-01-12</td>
+                                            <td><span class="badge badge-success">正常</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">移库</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">盘点</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>北区仓库</td>
+                                            <td>D区-04-01</td>
+                                            <td>工业雷管-非电雷管</td>
+                                            <td>250</td>
+                                            <td>B20240111005</td>
+                                            <td>2024-01-11</td>
+                                            <td>2025-01-11</td>
+                                            <td><span class="badge badge-danger">过期</span></td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">移库</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">处理</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="production-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">生产计划与进度</div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                                    <div class="card">
+                                        <div class="card-header">月度生产计划</div>
+                                        <div class="card-body">
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>产品名称</th>
+                                                        <th>计划产量</th>
+                                                        <th>已完成</th>
+                                                        <th>完成率</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>工业炸药-乳化型</td>
+                                                        <td>10,000箱</td>
+                                                        <td>8,500箱</td>
+                                                        <td>
+                                                            <div class="progress">
+                                                                <div class="progress-bar bg-success" style="width: 85%">85%</div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>工业雷管-电雷管</td>
+                                                        <td>5,000箱</td>
+                                                        <td>4,200箱</td>
+                                                        <td>
+                                                            <div class="progress">
+                                                                <div class="progress-bar bg-success" style="width: 84%">84%</div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>导爆索</td>
+                                                        <td>8,000卷</td>
+                                                        <td>6,500卷</td>
+                                                        <td>
+                                                            <div class="progress">
+                                                                <div class="progress-bar bg-warning" style="width: 81%">81%</div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header">生产线状态</div>
+                                        <div class="card-body">
+                                            <table>
+                                                <thead>
+                                                    <tr>
+                                                        <th>生产线</th>
+                                                        <th>生产产品</th>
+                                                        <th>状态</th>
+                                                        <th>今日产量</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>生产线-01</td>
+                                                        <td>工业炸药-乳化型</td>
+                                                        <td><span class="badge badge-success">运行中</span></td>
+                                                        <td>350箱</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>生产线-02</td>
+                                                        <td>工业雷管-电雷管</td>
+                                                        <td><span class="badge badge-success">运行中</span></td>
+                                                        <td>180箱</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>生产线-03</td>
+                                                        <td>导爆索</td>
+                                                        <td><span class="badge badge-warning">维护中</span></td>
+                                                        <td>0卷</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="quality-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">质量检验记录</div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>检验批号</th>
+                                            <th>产品名称</th>
+                                            <th>生产日期</th>
+                                            <th>检验项目</th>
+                                            <th>检验结果</th>
+                                            <th>检验员</th>
+                                            <th>检验时间</th>
+                                            <th>状态</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Q20240115001</td>
+                                            <td>工业炸药-乳化型</td>
+                                            <td>2024-01-15</td>
+                                            <td>爆炸性能</td>
+                                            <td>合格</td>
+                                            <td>张三</td>
+                                            <td>2024-01-15 14:30:00</td>
+                                            <td><span class="badge badge-success">通过</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Q20240115002</td>
+                                            <td>工业雷管-电雷管</td>
+                                            <td>2024-01-15</td>
+                                            <td>起爆性能</td>
+                                            <td>合格</td>
+                                            <td>李四</td>
+                                            <td>2024-01-15 13:45:00</td>
+                                            <td><span class="badge badge-success">通过</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Q20240114001</td>
+                                            <td>导爆索</td>
+                                            <td>2024-01-14</td>
+                                            <td>传爆性能</td>
+                                            <td>不合格</td>
+                                            <td>王五</td>
+                                            <td>2024-01-14 16:20:00</td>
+                                            <td><span class="badge badge-danger">不通过</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Q20240113001</td>
+                                            <td>工业炸药-水胶型</td>
+                                            <td>2024-01-13</td>
+                                            <td>稳定性</td>
+                                            <td>合格</td>
+                                            <td>赵六</td>
+                                            <td>2024-01-13 10:15:00</td>
+                                            <td><span class="badge badge-success">通过</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 其他模块内容（简化显示） -->
+                <!-- 用户管理 -->
+                <div id="user" class="module">
+                    <h2>用户管理</h2>
+                    
+                    <div class="search-bar">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end;">
+                            <div>
+                                <label>用户名/姓名</label>
+                                <input type="text" class="form-control" placeholder="搜索...">
+                            </div>
+                            <div>
+                                <label>状态</label>
+                                <select class="form-control">
+                                    <option>全部状态</option>
+                                    <option>活跃</option>
+                                    <option>禁用</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary">查询</button>
+                            <button class="btn" style="background: #f5f5f5;">重置</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>用户名</th>
+                                        <th>真实姓名</th>
+                                        <th>部门</th>
+                                        <th>角色</th>
+                                        <th>状态</th>
+                                        <th>最后登录</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>admin</td>
+                                        <td>系统管理员</td>
+                                        <td>信息技术部</td>
+                                        <td><span class="badge badge-info">系统管理员</span></td>
+                                        <td><span class="badge badge-success">活跃</span></td>
+                                        <td>2024-01-15 14:30:25</td>
+                                        <td>
+                                            <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                            <button class="btn btn-sm" style="background: #fff2e8;">重置密码</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>zhangsan</td>
+                                        <td>张三</td>
+                                        <td>生产部</td>
+                                        <td><span class="badge badge-warning">生产主管</span></td>
+                                        <td><span class="badge badge-success">活跃</span></td>
+                                        <td>2024-01-15 09:15:30</td>
+                                        <td>
+                                            <button class="btn btn-sm" style="background: #e6f7ff;">编辑</button>
+                                            <button class="btn btn-sm" style="background: #fff2e8;">重置密码</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <!-- RFID管理 -->
+                <div id="rfid" class="module">
+                    <h2>RFID标签管理</h2>
+                    
+                    <div class="search-bar">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end;">
+                            <div>
+                                <label>标签状态</label>
+                                <select class="form-control">
+                                    <option>全部状态</option>
+                                    <option>未使用</option>
+                                    <option>已激活</option>
+                                    <option>在库</option>
+                                    <option>在途</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>产品类型</label>
+                                <select class="form-control">
+                                    <option>全部产品类型</option>
+                                    <option>工业炸药</option>
+                                    <option>工业雷管</option>
+                                    <option>导爆索</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary">查询</button>
+                            <button class="btn" style="background: #f5f5f5;">重置</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>RFID标签号</th>
+                                        <th>绑定产品</th>
+                                        <th>产品类型</th>
+                                        <th>状态</th>
+                                        <th>创建时间</th>
+                                        <th>最后更新</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>RFID-202401150001</td>
+                                        <td>工业炸药-乳化型</td>
+                                        <td>工业炸药</td>
+                                        <td><span class="badge badge-success">在库</span></td>
+                                        <td>2024-01-15 08:30:25</td>
+                                        <td>2024-01-15 14:20:15</td>
+                                        <td>
+                                            <button class="btn btn-sm" style="background: #e6f7ff;">详情</button>
+                                            <button class="btn btn-sm" style="background: #fff2e8;">停用</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>RFID-202401150002</td>
+                                        <td>工业雷管-电雷管</td>
+                                        <td>工业雷管</td>
+                                        <td><span class="badge badge-warning">在途</span></td>
+                                        <td>2024-01-15 09:15:30</td>
+                                        <td>2024-01-15 16:45:20</td>
+                                        <td>
+                                            <button class="btn btn-sm" style="background: #e6f7ff;">详情</button>
+                                            <button class="btn btn-sm" style="background: #fff2e8;">停用</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 设备管理 -->
+                <div id="device" class="module">
+                    <h2>设备管理</h2>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>设备编号</th>
+                                        <th>设备名称</th>
+                                        <th>设备类型</th>
+                                        <th>安装位置</th>
+                                        <th>状态</th>
+                                        <th>最后心跳</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>DEV-001</td>
+                                        <td>产线RFID读写器-01</td>
+                                        <td>RFID读写器</td>
+                                        <td>生产线-01末端</td>
+                                        <td><span class="badge badge-success">在线</span></td>
+                                        <td>2024-01-15 16:45:30</td>
+                                        <td>
+                                            <button class="btn btn-sm" style="background: #e6f7ff;">升级</button>
+                                            <button class="btn btn-sm" style="background: #f6ffed;">配置</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>DEV-002</td>
+                                        <td>仓库通道门-东门</td>
+                                        <td>RFID通道门</td>
+                                        <td>中央仓库-东门</td>
+                                        <td><span class="badge badge-success">在线</span></td>
+                                        <td>2024-01-15 16:44:15</td>
+                                        <td>
+                                            <button class="btn btn-sm" style="background: #e6f7ff;">升级</button>
+                                            <button class="btn btn-sm" style="background: #f6ffed;">配置</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 订单管理 -->
+                <div id="order" class="module">
+                    <h2>订单管理</h2>
+                    
+                    <div class="tabs">
+                        <div class="tab active" onclick="showTab('all-orders-tab', this)">全部订单</div>
+                        <div class="tab" onclick="showTab('pending-orders-tab', this)">待处理</div>
+                        <div class="tab" onclick="showTab('in-transit-tab', this)">运输中</div>
+                        <div class="tab" onclick="showTab('completed-orders-tab', this)">已完成</div>
+                    </div>
+                    
+                    <div id="all-orders-tab" class="tab-content active">
+                        <div class="card">
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>订单编号</th>
+                                            <th>产品名称</th>
+                                            <th>数量</th>
+                                            <th>发货仓库</th>
+                                            <th>收货地点</th>
+                                            <th>运输车辆</th>
+                                            <th>驾驶员</th>
+                                            <th>订单状态</th>
+                                            <th>创建时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>T20240115001</td>
+                                            <td>工业炸药-乳化型</td>
+                                            <td>100箱</td>
+                                            <td>中央仓库</td>
+                                            <td>山西大同煤矿</td>
+                                            <td>晋A12345</td>
+                                            <td>王师傅</td>
+                                            <td><span class="badge badge-warning">运输中</span></td>
+                                            <td>2024-01-15 09:00:00</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">轨迹跟踪</button>
+                                                <button class="btn btn-sm" style="background: #f6ffed;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>T20240114003</td>
+                                            <td>工业雷管-电雷管</td>
+                                            <td>50箱</td>
+                                            <td>南区仓库</td>
+                                            <td>山西太原煤矿</td>
+                                            <td>晋B56789</td>
+                                            <td>李师傅</td>
+                                            <td><span class="badge badge-success">已完成</span></td>
+                                            <td>2024-01-14 14:30:00</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">查看详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>T20240113002</td>
+                                            <td>导爆索</td>
+                                            <td>200箱</td>
+                                            <td>中央仓库</td>
+                                            <td>山西平遥煤矿</td>
+                                            <td>晋C34567</td>
+                                            <td>张师傅</td>
+                                            <td><span class="badge badge-info">待发货</span></td>
+                                            <td>2024-01-13 10:15:00</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">安排发货</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">取消订单</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>T20240112001</td>
+                                            <td>工业炸药-乳化型</td>
+                                            <td>80箱</td>
+                                            <td>西区仓库</td>
+                                            <td>山西运城煤矿</td>
+                                            <td>晋D78901</td>
+                                            <td>赵师傅</td>
+                                            <td><span class="badge badge-danger">异常</span></td>
+                                            <td>2024-01-12 08:45:00</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">处理异常</button>
+                                                <button class="btn btn-sm" style="background: #f6ffed;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>T20240111005</td>
+                                            <td>工业雷管-电雷管</td>
+                                            <td>60箱</td>
+                                            <td>中央仓库</td>
+                                            <td>山西忻州煤矿</td>
+                                            <td>晋F23456</td>
+                                            <td>刘师傅</td>
+                                            <td><span class="badge badge-success">已完成</span></td>
+                                            <td>2024-01-11 16:20:00</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">查看详情</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="pending-orders-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-body">
+                                <p>待处理订单内容...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="in-transit-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-body">
+                                <p>运输中订单内容...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="completed-orders-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-body">
+                                <p>已完成订单内容...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 车辆管理 -->
+                <div id="vehicle" class="module">
+                    <h2>车辆管理</h2>
+                    
+                    <div class="tabs">
+                        <div class="tab active" onclick="showTab('vehicles-tab', this)">车辆管理</div>
+                        <div class="tab" onclick="showTab('drivers-tab', this)">驾驶员管理</div>
+                        <div class="tab" onclick="showTab('monitor-tab', this)">实时监控</div>
+                    </div>
+                    
+                    <div id="vehicles-tab" class="tab-content active">
+                        <div class="card">
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>车牌号码</th>
+                                            <th>车辆类型</th>
+                                            <th>载重(t)</th>
+                                            <th>GPS设备号</th>
+                                            <th>车辆状态</th>
+                                            <th>当前位置</th>
+                                            <th>最后上报时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>晋A12345</td>
+                                            <td>危险品运输车</td>
+                                            <td>10</td>
+                                            <td>GPS-001</td>
+                                            <td><span class="badge badge-warning">运输中</span></td>
+                                            <td>京藏高速张家口段</td>
+                                            <td>2024-01-15 16:45:30</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">实时监控</button>
+                                                <button class="btn btn-sm" style="background: #f6ffed;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>晋B56789</td>
+                                            <td>危险品运输车</td>
+                                            <td>8</td>
+                                            <td>GPS-002</td>
+                                            <td><span class="badge badge-success">空闲</span></td>
+                                            <td>公司停车场</td>
+                                            <td>2024-01-15 15:30:20</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">实时监控</button>
+                                                <button class="btn btn-sm" style="background: #f6ffed;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>晋C34567</td>
+                                            <td>危险品运输车</td>
+                                            <td>12</td>
+                                            <td>GPS-003</td>
+                                            <td><span class="badge badge-warning">运输中</span></td>
+                                            <td>G6高速呼和浩特段</td>
+                                            <td>2024-01-15 16:20:15</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">实时监控</button>
+                                                <button class="btn btn-sm" style="background: #f6ffed;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>晋D78901</td>
+                                            <td>危险品运输车</td>
+                                            <td>10</td>
+                                            <td>GPS-004</td>
+                                            <td><span class="badge badge-danger">维修中</span></td>
+                                            <td>维修车间</td>
+                                            <td>2024-01-14 09:15:00</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">维修记录</button>
+                                                <button class="btn btn-sm" style="background: #f6ffed;">详情</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>晋F23456</td>
+                                            <td>危险品运输车</td>
+                                            <td>8</td>
+                                            <td>GPS-005</td>
+                                            <td><span class="badge badge-success">空闲</span></td>
+                                            <td>南区停车场</td>
+                                            <td>2024-01-15 14:40:10</td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">实时监控</button>
+                                                <button class="btn btn-sm" style="background: #f6ffed;">详情</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="drivers-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>驾驶员姓名</th>
+                                            <th>驾驶证号</th>
+                                            <th>准驾车型</th>
+                                            <th>联系电话</th>
+                                            <th>当前状态</th>
+                                            <th>累计里程(km)</th>
+                                            <th>安全评分</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>王师傅</td>
+                                            <td>11010119800101001X</td>
+                                            <td>A2</td>
+                                            <td>13800138000</td>
+                                            <td><span class="badge badge-warning">运输中</span></td>
+                                            <td>15,280</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-success" style="width: 95%">95%</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">详情</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">排班</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>李师傅</td>
+                                            <td>11010119810202002X</td>
+                                            <td>A2</td>
+                                            <td>13800138001</td>
+                                            <td><span class="badge badge-success">待命</span></td>
+                                            <td>12,450</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-success" style="width: 88%">88%</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">详情</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">排班</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>张师傅</td>
+                                            <td>11010119780315003X</td>
+                                            <td>A2</td>
+                                            <td>13800138002</td>
+                                            <td><span class="badge badge-success">待命</span></td>
+                                            <td>18,760</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-warning" style="width: 82%">82%</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">详情</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">排班</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>赵师傅</td>
+                                            <td>11010119851225004X</td>
+                                            <td>A2</td>
+                                            <td>13800138003</td>
+                                            <td><span class="badge badge-danger">休假</span></td>
+                                            <td>9,340</td>
+                                            <td>
+                                                <div class="progress">
+                                                    <div class="progress-bar bg-success" style="width: 91%">91%</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm" style="background: #e6f7ff;">详情</button>
+                                                <button class="btn btn-sm" style="background: #fff2e8;">排班</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="monitor-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">车辆实时监控</div>
+                            <div class="card-body">
+                                <div class="map-container">
+                                    <i class="fas fa-map-marked-alt fa-3x"></i>
+                                    <div style="margin-left: 10px;">车辆实时位置监控地图</div>
+                                </div>
+                                <div class="vehicle-status">
+                                    <h5>车辆状态概览</h5>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <div class="stat-value">3</div>
+                                                <div>运输中车辆</div>
+                                            </div>
+                                        </div>
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <div class="stat-value">2</div>
+                                                <div>空闲车辆</div>
+                                            </div>
+                                        </div>
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <div class="stat-value">1</div>
+                                                <div>维修中车辆</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 系统日志 -->
+                <div id="log" class="module">
+                    <h2>系统日志</h2>
+                    
+                    <div class="search-bar">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto auto; gap: 10px; align-items: end;">
+                            <div>
+                                <label>操作人员</label>
+                                <input type="text" class="form-control" placeholder="输入用户名或姓名">
+                            </div>
+                            <div>
+                                <label>操作类型</label>
+                                <select class="form-control">
+                                    <option>全部操作类型</option>
+                                    <option>用户登录</option>
+                                    <option>数据新增</option>
+                                    <option>数据修改</option>
+                                    <option>数据删除</option>
+                                    <option>系统配置</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>操作时间</label>
+                                <input type="text" class="form-control" placeholder="选择日期范围">
+                            </div>
+                            <button class="btn btn-primary">查询</button>
+                            <button class="btn" style="background: #f5f5f5;">导出日志</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>操作时间</th>
+                                        <th>操作人员</th>
+                                        <th>操作模块</th>
+                                        <th>操作类型</th>
+                                        <th>操作描述</th>
+                                        <th>IP地址</th>
+                                        <th>操作结果</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2024-01-15 14:30:25</td>
+                                        <td>admin</td>
+                                        <td>用户管理</td>
+                                        <td>用户登录</td>
+                                        <td>用户admin登录系统</td>
+                                        <td>192.168.1.100</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 14:25:10</td>
+                                        <td>zhangsan</td>
+                                        <td>产品管理</td>
+                                        <td>数据新增</td>
+                                        <td>新增产品：工业炸药-乳化型，数量50箱</td>
+                                        <td>192.168.1.101</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 13:45:30</td>
+                                        <td>lisi</td>
+                                        <td>仓储管理</td>
+                                        <td>数据修改</td>
+                                        <td>修改库存信息：工业雷管-电雷管，库存从650调整为680</td>
+                                        <td>192.168.1.102</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 12:20:15</td>
+                                        <td>wangwu</td>
+                                        <td>订单管理</td>
+                                        <td>数据新增</td>
+                                        <td>创建运输订单：T20240115003，目的地陕西榆林煤矿</td>
+                                        <td>192.168.1.103</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 11:30:40</td>
+                                        <td>zhaoliu</td>
+                                        <td>设备管理</td>
+                                        <td>系统配置</td>
+                                        <td>配置RFID读写器参数：DEV-005，通信频率调整为920MHz</td>
+                                        <td>192.168.1.104</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 10:15:20</td>
+                                        <td>admin</td>
+                                        <td>权限管理</td>
+                                        <td>数据修改</td>
+                                        <td>修改用户角色：将用户lisi角色从仓库管理员调整为生产主管</td>
+                                        <td>192.168.1.100</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 09:45:10</td>
+                                        <td>qianqi</td>
+                                        <td>数据交换</td>
+                                        <td>数据同步</td>
+                                        <td>同步公安平台数据：成功同步45条出入库记录</td>
+                                        <td>192.168.1.105</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2024-01-15 08:30:05</td>
+                                        <td>sunba</td>
+                                        <td>RFID管理</td>
+                                        <td>数据删除</td>
+                                        <td>停用RFID标签：RFID-202401140025，原因：标签损坏</td>
+                                        <td>192.168.1.106</td>
+                                        <td><span class="badge badge-success">成功</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 数据交换 -->
+                <div id="data-exchange" class="module">
+                    <h2>数据交换</h2>
+                    
+                    <div class="tabs">
+                        <div class="tab active" onclick="showTab('mes-tab', this)">MES系统对接</div>
+                        <div class="tab" onclick="showTab('police-tab', this)">公安管控平台</div>
+                        <div class="tab" onclick="showTab('erp-tab', this)">ERP系统</div>
+                    </div>
+                    
+                    <div id="mes-tab" class="tab-content active">
+                        <div class="card">
+                            <div class="card-header">MES系统对接状态</div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <h5>连接状态</h5>
+                                        <div style="display: flex; align-items: center;">
+                                            <div style="width: 12px; height: 12px; background: var(--success); border-radius: 50%; margin-right: 10px;"></div>
+                                            <span>已连接</span>
+                                        </div>
+                                        <div style="margin-top: 15px;">
+                                            <div><strong>最后同步时间：</strong> 2024-01-15 16:30:25</div>
+                                            <div><strong>同步数据量：</strong> 1,250 条生产记录</div>
+                                            <div><strong>错误次数：</strong> 0 次</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5>同步统计</h5>
+                                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                                            <div style="margin-bottom: 10px;">
+                                                <div style="display: flex; justify-content: space-between;">
+                                                    <span>生产计划数据</span>
+                                                    <span>95%</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" style="width: 95%; background: var(--success);"></div>
+                                                </div>
+                                            </div>
+                                            <div style="margin-bottom: 10px;">
+                                                <div style="display: flex; justify-content: space-between;">
+                                                    <span>生产进度数据</span>
+                                                    <span>88%</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" style="width: 88%; background: var(--primary);"></div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style="display: flex; justify-content: space-between;">
+                                                    <span>质量检验数据</span>
+                                                    <span>76%</span>
+                                                </div>
+                                                <div class="progress">
+                                                    <div class="progress-bar" style="width: 76%; background: var(--warning);"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="police-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">公安管控平台数据同步</div>
+                            <div class="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>同步时间</th>
+                                            <th>数据类型</th>
+                                            <th>记录数量</th>
+                                            <th>同步结果</th>
+                                            <th>错误信息</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>2024-01-15 16:00:00</td>
+                                            <td>出入库记录</td>
+                                            <td>45</td>
+                                            <td><span class="badge badge-success">成功</span></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2024-01-15 12:00:00</td>
+                                            <td>运输订单</td>
+                                            <td>12</td>
+                                            <td><span class="badge badge-success">成功</span></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2024-01-15 08:00:00</td>
+                                            <td>库存信息</td>
+                                            <td>8</td>
+                                            <td><span class="badge badge-success">成功</span></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2024-01-14 16:00:00</td>
+                                            <td>出入库记录</td>
+                                            <td>38</td>
+                                            <td><span class="badge badge-warning">部分成功</span></td>
+                                            <td>3条记录格式错误</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2024-01-14 12:00:00</td>
+                                            <td>运输订单</td>
+                                            <td>15</td>
+                                            <td><span class="badge badge-success">成功</span></td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2024-01-14 08:00:00</td>
+                                            <td>库存信息</td>
+                                            <td>10</td>
+                                            <td><span class="badge badge-success">成功</span></td>
+                                            <td></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="erp-tab" class="tab-content">
+                        <div class="card">
+                            <div class="card-header">ERP系统对接</div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                    <div>
+                                        <h5>财务数据同步</h5>
+                                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                                            <div style="margin-bottom: 15px;">
+                                                <div style="display: flex; justify-content: space-between;">
+                                                    <span>同步状态</span>
+                                                    <span class="badge badge-success">正常</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div><strong>最后同步：</strong> 2024-01-15 17:00:00</div>
+                                                <div><strong>同步记录：</strong> 28条财务凭证</div>
+                                                <div><strong>下次同步：</strong> 2024-01-16 09:00:00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5>库存数据同步</h5>
+                                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px;">
+                                            <div style="margin-bottom: 15px;">
+                                                <div style="display: flex; justify-content: space-between;">
+                                                    <span>同步状态</span>
+                                                    <span class="badge badge-warning">警告</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div><strong>最后同步：</strong> 2024-01-15 16:30:00</div>
+                                                <div><strong>同步记录：</strong> 125条库存变更</div>
+                                                <div><strong>异常记录：</strong> 5条数据不一致</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 显示当前时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = 
+                now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+        }
+        
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // 模块切换功能
+        function showModule(moduleId) {
+            // 隐藏所有模块
+            document.querySelectorAll('.module').forEach(module => {
+                module.classList.remove('active');
+            });
+            
+            // 移除所有菜单激活状态
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 显示目标模块
+            document.getElementById(moduleId).classList.add('active');
+            
+            // 激活对应菜单项
+            event.currentTarget.classList.add('active');
+        }
+        
+        // 标签页切换功能
+        function showTab(tabId, element) {
+            const tabContainer = element.parentElement;
+            const tabContents = tabContainer.parentElement.querySelectorAll('.tab-content');
+            
+            // 移除所有激活状态
+            tabContainer.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 激活当前标签
+            element.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // 初始化生产进度图表
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('productionChart').getContext('2d');
+            const productionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['1月10日', '1月11日', '1月12日', '1月13日', '1月14日', '1月15日'],
+                    datasets: [
+                        {
+                            label: '计划产量',
+                            data: [320, 340, 310, 350, 280, 330],
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '实际产量',
+                            data: [300, 325, 290, 340, 270, 310],
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '产量（箱）'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '日期'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '近一周生产进度统计',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
