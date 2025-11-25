@@ -11,6 +11,15 @@ from .models import RFIDTagData, RFIDDevice
 from .mqtt_client import mqtt_client
 
 
+def management(request):
+    """管理页面视图"""
+    context = {
+        'page_title': '火工品工厂管控服务平台',
+        # 可以添加其他上下文数据
+    }
+    return render(request, 'rfid_app/management.html', context)
+
+
 def dashboard(request):
     """主仪表板页面"""
     try:

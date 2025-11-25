@@ -15,6 +15,7 @@ urlpatterns = [
     # 页面路由
     path('', views.dashboard, name='dashboard'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('management/', views.management, name='management'),
 
     # API路由
     path('api/statistics/', views.get_statistics_api, name='api_statistics'),
