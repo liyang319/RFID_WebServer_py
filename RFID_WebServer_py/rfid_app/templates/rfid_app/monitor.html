@@ -16,6 +16,7 @@
         .tag-id { font-family: monospace; font-size: 13px; word-break: break-all; }
         .result-success { color: #28a745; font-weight: 600; }
         .result-fail { color: #dc3545; font-weight: 600; }
+        .message-log { max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -118,7 +119,7 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th style="width:90px">时间</th>
+                                        <th style="width:170px">时间</th>
                                         <th style="width:220px">标签TID</th>
                                         <th style="width:220px">标签EPC</th>
                                         <th style="width:220px">标签USERDATA</th>
@@ -128,7 +129,7 @@
                                 <tbody id="real-time-table">
                                     {% for record in recent_data %}
                                     <tr>
-                                        <td>{{ record.timestamp|date:"H:i:s" }}</td>
+                                        <td>{{ record.timestamp|date:"Y-m-d H:i:s" }}</td>
                                         <td class="tag-id">{{ record.tid }}</td>
                                         <td class="tag-id">{{ record.epc }}</td>
                                         <td class="tag-id">{{ record.user_data }}</td>
@@ -137,6 +138,17 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 消息日志 -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="bi bi-list-check"></i> 消息日志
+                    </div>
+                    <div class="card-body">
+                        <div id="message-log" class="message-log">
                         </div>
                     </div>
                 </div>
@@ -155,6 +167,7 @@
             init() {
                 this.startAutoRefresh();
                 this.refreshData();
+                this.addMessageLog('监控页面初始化完成', 'success');
             }
 
             startAutoRefresh() {
@@ -167,6 +180,9 @@
                     this.autoRefreshInterval = setInterval(() => {
                         this.refreshData();
                     }, interval);
+                    this.addMessageLog(`自动刷新已启动: ${interval / 1000}秒`, 'info');
+                } else {
+                    this.addMessageLog('自动刷新已关闭', 'warning');
                 }
             }
 
@@ -179,6 +195,8 @@
 
             async refreshData() {
                 try {
+                    this.addMessageLog('正在请求 /api/monitor-data/ ...', 'info');
+
                     const dataResponse = await fetch('/api/monitor-data/?limit=100');
 
                     if (!dataResponse.ok) {
@@ -195,12 +213,14 @@
 
                     if (data.success) {
                         this.updateDataTable(data.data);
+                        this.addMessageLog(`数据刷新成功，共 ${data.count} 条记录`, 'success');
                     } else {
                         throw new Error(data.error || '获取数据失败');
                     }
 
                 } catch (error) {
                     console.error('刷新数据失败:', error);
+                    this.addMessageLog('刷新数据失败: ' + error.message, 'error');
                 }
             }
 
@@ -225,7 +245,7 @@
 
                 data.forEach(item => {
                     const row = table.insertRow();
-                    const time = new Date(item.timestamp).toLocaleTimeString();
+                    const time = this._formatDateTime(item.timestamp);
 
                     row.innerHTML = `
                         <td style="font-size:13px">${time}</td>
@@ -246,7 +266,38 @@
 
                 if (data.length > 0 && data[0].timestamp) {
                     document.getElementById('last-report').textContent =
-                        new Date(data[0].timestamp).toLocaleTimeString();
+                        this._formatDateTime(data[0].timestamp);
+                }
+            }
+
+            _formatDateTime(isoString) {
+                if (!isoString) return '--';
+                const d = new Date(isoString);
+                const pad = (n) => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            }
+
+            addMessageLog(message, type = 'info') {
+                const logContainer = document.getElementById('message-log');
+                if (!logContainer) return;
+
+                const now = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `
+                    <span class="text-muted">[${timeStr}]</span>
+                    <span class="text-${type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'success'}">
+                        ${message}
+                    </span>
+                `;
+
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+
+                if (logContainer.children.length > 50) {
+                    logContainer.removeChild(logContainer.firstChild);
                 }
             }
 
@@ -259,6 +310,7 @@
                 document.getElementById('device-count').textContent = '0';
                 document.getElementById('last-report').textContent = '--';
                 document.getElementById('record-count').textContent = '数据: 0 条';
+                this.addMessageLog('显示数据已清空', 'warning');
             }
         }
 
