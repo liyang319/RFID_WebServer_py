@@ -99,6 +99,7 @@ def get_recent_data_api(request):
         device_id = request.GET.get('device_id')
         product_name = request.GET.get('product_name')
         data_type = request.GET.get('data_type')
+        antenna = request.GET.get('data_type')
 
         query = RFIDTagData.objects.all().order_by('-timestamp')
         if device_id:

@@ -189,7 +189,7 @@ class SimpleMQTTClient:
                 epc=data.get('epc', ''),
                 device=device,
                 rssi=data.get('rssi'),
-                antenna=data.get('antenna', 1),
+                antenna=data.get('antenna_num', 1),
                 timestamp=timestamp,
                 product_name=data.get('product_name', ''),
                 data_type=data_type,
