@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.db.models import Count, Max, Avg
 from django.db import models
 import json
-from .models import RFIDTagData, RFIDDevice
+from .models import RFIDTagData, RFIDDevice, MonitorData
 from .mqtt_client import mqtt_client
 
 
@@ -480,6 +480,101 @@ def clear_database_api(request):
             'cleared_count': count if data_type == 'tags' else tag_count,
             'data_type': data_type,
             'timestamp': timezone.now().isoformat()
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+def _bytes_to_hex(byte_list):
+    """将整数数组转换为HEX字符串"""
+    return bytes(byte_list).hex().upper()
+
+
+def monitor(request):
+    """监控页面视图 - HTTP POST数据上报"""
+    try:
+        recent_data = MonitorData.objects.all().order_by('-timestamp')[:30]
+
+        context = {
+            'page_title': 'RFID数据监控',
+            'recent_data': recent_data,
+        }
+        return render(request, 'rfid_app/monitor.html', context)
+
+    except Exception as e:
+        return render(request, 'rfid_app/error.html', {
+            'error_message': f'页面加载失败: {str(e)}'
+        })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def report_rfid_api(request):
+    """HTTP POST上报RFID数据接口"""
+    try:
+        data = json.loads(request.body)
+
+        device_id = data.get('device_id', 'unknown')
+        tid_list = data.get('tid', [])
+        epc_list = data.get('epc', [])
+        user_data_list = data.get('user_data', [])
+        write_result = data.get('write_result', '')
+
+        tid_hex = _bytes_to_hex(tid_list) if tid_list else ''
+        epc_hex = _bytes_to_hex(epc_list) if epc_list else ''
+        user_data_hex = _bytes_to_hex(user_data_list) if user_data_list else ''
+
+        record = MonitorData.objects.create(
+            device_id=device_id,
+            tid=tid_hex,
+            epc=epc_hex,
+            user_data=user_data_hex,
+            write_result=write_result,
+            raw_data=data,
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': '数据上报成功',
+            'id': record.id,
+            'timestamp': record.timestamp.isoformat()
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@require_http_methods(["GET"])
+def get_monitor_data_api(request):
+    """获取监控数据列表API"""
+    try:
+        limit = int(request.GET.get('limit', 50))
+        device_id = request.GET.get('device_id')
+
+        query = MonitorData.objects.all().order_by('-timestamp')
+        if device_id:
+            query = query.filter(device_id=device_id)
+
+        records = list(query[:limit].values(
+            'id', 'device_id', 'tid', 'epc', 'user_data',
+            'write_result', 'timestamp'
+        ))
+
+        for item in records:
+            if item['timestamp']:
+                item['timestamp'] = item['timestamp'].isoformat()
+
+        return JsonResponse({
+            'success': True,
+            'data': records,
+            'count': len(records)
         })
 
     except Exception as e:

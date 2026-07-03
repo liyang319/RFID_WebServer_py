@@ -65,3 +65,22 @@ class RFIDTagData(models.Model):
 
     def __str__(self):
         return f"标签 {self.tag_id} - 产品: {self.product_name}"
+
+
+class MonitorData(models.Model):
+    """HTTP POST上报的RFID监控数据"""
+    device_id = models.CharField(max_length=50, verbose_name="设备ID")
+    tid = models.CharField(max_length=512, verbose_name="标签TID(HEX)")
+    epc = models.CharField(max_length=512, verbose_name="标签EPC(HEX)")
+    user_data = models.CharField(max_length=512, verbose_name="标签USERDATA(HEX)")
+    write_result = models.CharField(max_length=50, verbose_name="写结果")
+    raw_data = models.JSONField(null=True, blank=True, verbose_name="原始数据")
+    timestamp = models.DateTimeField(default=timezone.now, verbose_name="上报时间")
+
+    class Meta:
+        verbose_name = '监控数据'
+        verbose_name_plural = '监控数据'
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.device_id} - TID:{self.tid} - {self.timestamp.strftime('%H:%M:%S')}"
