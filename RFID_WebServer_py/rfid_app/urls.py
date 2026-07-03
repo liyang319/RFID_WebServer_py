@@ -33,4 +33,5 @@ urlpatterns = [
     # 监控API路由
     path('api/report-rfid/', views.report_rfid_api, name='api_report_rfid'),
     path('api/monitor-data/', views.get_monitor_data_api, name='api_monitor_data'),
+    path('api/clear-monitor-data/', views.clear_monitor_data_api, name='api_clear_monitor_data'),
 ]

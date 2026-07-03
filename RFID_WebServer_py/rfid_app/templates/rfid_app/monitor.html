@@ -67,7 +67,7 @@
                                 <i class="bi bi-arrow-clockwise"></i> 刷新数据
                             </button>
                             <button class="btn btn-outline-secondary" onclick="clearDisplayData()">
-                                <i class="bi bi-trash"></i> 清空显示
+                                <i class="bi bi-trash"></i> 清空数据
                             </button>
                         </div>
                         <div class="mt-3">
@@ -301,16 +301,49 @@
                 }
             }
 
-            clearDisplayData() {
-                const table = document.getElementById('real-time-table');
-                if (table) {
-                    table.innerHTML = '<tr><td colspan="5" class="text-center text-muted">暂无数据</td></tr>';
+            async clearDisplayData() {
+                if (!confirm('确定要清空所有监控数据吗？此操作不可撤销！')) {
+                    this.addMessageLog('用户取消清空操作', 'warning');
+                    return;
                 }
-                document.getElementById('total-records').textContent = '0';
-                document.getElementById('device-count').textContent = '0';
-                document.getElementById('last-report').textContent = '--';
-                document.getElementById('record-count').textContent = '数据: 0 条';
-                this.addMessageLog('显示数据已清空', 'warning');
+
+                try {
+                    this.addMessageLog('正在清空监控数据...', 'warning');
+
+                    const response = await fetch('/api/clear-monitor-data/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API错误: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        this.addMessageLog(result.message, 'success');
+
+                        // 清空显示
+                        const table = document.getElementById('real-time-table');
+                        if (table) {
+                            table.innerHTML = '<tr><td colspan="5" class="text-center text-muted">暂无数据</td></tr>';
+                        }
+                        document.getElementById('total-records').textContent = '0';
+                        document.getElementById('device-count').textContent = '0';
+                        document.getElementById('last-report').textContent = '--';
+                        document.getElementById('record-count').textContent = '数据: 0 条';
+
+                        // 刷新数据确保同步
+                        setTimeout(() => this.refreshData(), 500);
+                    } else {
+                        throw new Error(result.error || '清空失败');
+                    }
+
+                } catch (error) {
+                    console.error('清空数据失败:', error);
+                    this.addMessageLog('清空数据失败: ' + error.message, 'error');
+                }
             }
         }
 

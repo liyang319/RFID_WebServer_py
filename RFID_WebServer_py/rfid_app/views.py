@@ -582,3 +582,25 @@ def get_monitor_data_api(request):
             'success': False,
             'error': str(e)
         })
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def clear_monitor_data_api(request):
+    """清空监控数据API"""
+    try:
+        count = MonitorData.objects.count()
+        MonitorData.objects.all().delete()
+
+        return JsonResponse({
+            'success': True,
+            'message': f'已清空 {count} 条监控数据',
+            'cleared_count': count,
+            'timestamp': timezone.now().isoformat()
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
